@@ -44,15 +44,15 @@ class LineRasterizer(Elaboratable):
         self.sy_2 = Signal(signed(width))
         self.err_2 = Signal(signed(width))
 
-        self.cur_x_3 = Signal(self.in_x.shape())
-        self.cur_y_3 = Signal(self.in_y.shape())
+        # self.cur_x_3 = Signal(self.in_x.shape())
+        # self.cur_y_3 = Signal(self.in_y.shape())
         self.dst_x_3 = Signal(self.in_x.shape())
         self.dst_y_3 = Signal(self.in_y.shape())
         self.dx_3 = Signal(self.in_x.shape())
         self.dy_3 = Signal(self.in_y.shape())
         self.sx_3 = Signal(signed(width))
         self.sy_3 = Signal(signed(width))
-        self.err_3 = Signal(signed(width))
+        # self.err_3 = Signal(signed(width))
         self.e2 = Signal(signed(width))
 
         self.cur_x_4 = Signal(self.in_x.shape())
@@ -140,22 +140,18 @@ class LineRasterizer(Elaboratable):
                 self.in_y_2.eq(self.in_y),
                 self.in_type_2.eq(self.in_type),
 
-                # self.cur_x_3.eq(self.cur_x_2),
-                # self.cur_y_3.eq(self.cur_y_2),
-                # self.dst_x_3.eq(self.dst_x_2),
-                # self.dst_y_3.eq(self.dst_y_2),
                 self.in_x_3.eq(self.in_x_2),
                 self.in_y_3.eq(self.in_y_2),
                 self.in_type_3.eq(self.in_type_2),
 
-                # cur_{x/y}_4 set below conditionally
+                # cur_{x/y}_4 not set here, rather conditionally below
                 self.dst_x_4.eq(self.dst_x_3),
                 self.dst_y_4.eq(self.dst_y_3),
                 self.dx_4.eq(self.dx_3),
                 self.dy_4.eq(self.dy_3),
                 self.sx_4.eq(self.sx_3),
                 self.sy_4.eq(self.sy_3),
-                self.err_4.eq(self.err_3),
+                # self.err_4.eq(self.err_3),
             ]
 
             with m.If(self.in_ready):
@@ -163,8 +159,8 @@ class LineRasterizer(Elaboratable):
 
             with m.If(self.valid_2):
                 with m.If(self.in_type_2 == InPacketType.FIRST):
-                    sync += self.cur_x_3.eq(self.in_x_2)
-                    sync += self.cur_y_3.eq(self.in_y_2)
+                    sync += self.cur_x_4.eq(self.in_x_2)
+                    sync += self.cur_y_4.eq(self.in_y_2)
                     sync += self.first_next.eq(True)
 
                 with m.Elif(self.in_type_2 == InPacketType.NEXT):
@@ -172,18 +168,18 @@ class LineRasterizer(Elaboratable):
                     sync += self.dst_x_3.eq(self.in_x_2)
             
             with m.If(self.valid_3):
-                comb += self.abs_dx_3.eq(self.cur_x_3 - self.in_x_3)
-                comb += self.abs_dy_3.eq(self.cur_y_3 - self.in_y_3)
+                comb += self.abs_dx_3.eq(self.cur_x_4 - self.in_x_3)
+                comb += self.abs_dy_3.eq(self.cur_y_4 - self.in_y_3)
                 comb += self.dx_3.eq(Mux(self.abs_dx_3[-1], -self.abs_dx_3, self.abs_dx_3))
                 comb += self.dy_3.eq(Mux(self.abs_dy_3[-1], -self.abs_dy_3, self.abs_dy_3))
-                comb += self.sx_3.eq(Mux(self.in_x_3 > self.cur_x_3, 1, -1))
-                comb += self.sy_3.eq(Mux(self.in_y_3 > self.cur_y_3, 1, -1))
-                comb += self.err_3.eq(self.dx_3 - self.dy_3)
+                comb += self.sx_3.eq(Mux(self.in_x_3 > self.cur_x_4, 1, -1))
+                comb += self.sy_3.eq(Mux(self.in_y_3 > self.cur_y_4, 1, -1))
+                sync += self.err_4.eq(self.dx_3 - self.dy_3)
 
                 with m.If(self.first_next):
                     sync += [
-                        self.cur_x_4.eq(self.cur_x_3),
-                        self.cur_y_4.eq(self.cur_y_3),
+                        # self.cur_x_4.eq(self.cur_x_3),
+                        # self.cur_y_4.eq(self.cur_y_3),
                         self.first_next.eq(False)
                     ]
 
